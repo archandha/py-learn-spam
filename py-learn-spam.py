@@ -13,7 +13,6 @@ import subprocess
 import re
 import configparser
 from imaplib import IMAP4
-from pprint import pprint
 import time
 
 
