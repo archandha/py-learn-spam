@@ -6,6 +6,9 @@ Python 3 script to read imap folders and pipe mails into rspamd
 - depending on imap folder they should be learned as ham or spam
 - after rspamd training, they should me moved to an appropriate "done" folder
 
+This software is licensed under the GNU Public License GPLv3. See LICENSE
+file.
+
 """
 
 import logging
