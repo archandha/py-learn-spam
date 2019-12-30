@@ -1,0 +1,10 @@
+[Unit]
+Description=Script to shift imap mails to rspamd for learning ham and spam
+ConditionPathExists=/usr/bin/python3
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/py-learn-spam.py
+Type=oneshot
+
+[Install]
+WantedBy=timers.target

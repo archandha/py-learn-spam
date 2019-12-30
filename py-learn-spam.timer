@@ -1,0 +1,11 @@
+[Unit]
+Description=Script to shift imap mails to rspamd for learning ham and spam
+
+
+[Timer]
+OnCalendar=*:2/10
+Persistent=true
+
+
+[Install]
+WantedBy=timers.target
