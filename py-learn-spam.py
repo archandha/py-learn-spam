@@ -8,7 +8,6 @@ Python 3 script to read imap folders and pipe mails into rspamd
 
 This software is licensed under the GNU Public License GPLv3. See LICENSE
 file.
-
 """
 
 import logging
@@ -21,7 +20,7 @@ import time
 
 CONFIGFILE = '/etc/py-learn-spam.ini'
 
-rspamd_success_string = "^success = true;$|^error.*has been already learned as.*$"
+rspamd_success_string = "^success = true;$|^error.*has been already learned as.*$|^error = \"<.*> is skipped for bayes classifier: already in class (h|sp)am.*\";$"
 
 rspamd_success_pattern = re.compile(rspamd_success_string)
 
