@@ -10,22 +10,24 @@ This software is licensed under the GNU Public License GPLv3. See LICENSE
 file.
 """
 
-import logging
-import subprocess
-import re
 import configparser
-from imaplib import IMAP4
+import logging
+import re
+import subprocess
 import time
-
+from imaplib import IMAP4
 
 CONFIGFILE = '/etc/py-learn-spam.ini'
 
-rspamd_success_string = "^success = true;$|^error.*has been already learned as.*$|^error = \"<.*> is skipped for bayes classifier: already in class (h|sp)am.*\";$"
+rspamd_success_string = (
+    "^success = true;$|^error.*has been already learned as.*$|^error = \"<.*> "
+    "is skipped for bayes classifier: already in class (h|sp)am.*\";$"
+)
 
 rspamd_success_pattern = re.compile(rspamd_success_string)
 
 
-def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
+def query_folder(host, wait, user, passwd, learn, done, task, command, rhost):
     """
     queries all mails in folder named learn, passes this to rspamd
     and moves mail info done folder
@@ -47,12 +49,11 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
     except IMAP4.error as e:
         logging.warning('IMAP4 error: {}'.format(e))
 
-
     con.login(user, passwd)
 
     # get number of messages to be learned
     try:
-        typ, data = con.select(learn, readonly= False)
+        typ, data = con.select(learn, readonly=False)
         num_msgs = int(data[0])
         logging.info("%d Messages in '%s'",  num_msgs, learn)
     except IMAP4.error as e:
@@ -88,14 +89,13 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
             # try fallback decode latin-1
             mesg_text = "".join(message.decode('latin-1'))
 
-
         # pipe assembled message through rspam cli
         with subprocess.Popen([
                 command,
                 '--connect',
                 rhost,
                 'learn_%s' % task,
-            ], stdin=subprocess.PIPE, stdout=subprocess.PIPE) as rspamc:
+        ], stdin=subprocess.PIPE, stdout=subprocess.PIPE) as rspamc:
             rspamc.stdin.write(bytearray(mesg_text, "utf-8"))
             rspamc.stdin.close()
             result = rspamc.stdout.read().decode("utf-8")
@@ -111,7 +111,7 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
             logging.info("copied mail %d to %s" % (int(num), done))
 
             if result[0] == 'OK':
-                mov, data = con.store(num, '+FLAGS', '(\Deleted)')
+                mov, data = con.store(num, '+FLAGS', '(\\Deleted)')
                 logging.debug("removed learned mail vom %s" % learn)
                 con.expunge()
                 logging.debug("expunged learned mail vom %s" % learn)
@@ -123,7 +123,6 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
 
     con.logout()
     return
-
 
 
 def main():
@@ -160,7 +159,6 @@ def main():
 
     wait = int(config['imap'].get('wait', 5))
 
-
     logging.info("starting with spam run")
     query_folder(
         host, wait, user, passwd, spamfolder,
@@ -169,7 +167,6 @@ def main():
     query_folder(
         host, wait, user, passwd, hamfolder,
         hamdonefolder, "ham", command, rhostport)
-
 
 
 if __name__ == '__main__':
