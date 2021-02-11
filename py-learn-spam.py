@@ -45,7 +45,7 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
     try:
         con.enable("UTF8=ACCEPT")
     except IMAP4.error as e:
-        logging.warning(e)
+        logging.warning('IMAP4 error: {}'.format(e))
 
 
     con.login(user, passwd)
@@ -56,14 +56,15 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
         num_msgs = int(data[0])
         logging.info("%d Messages in '%s'",  num_msgs, learn)
     except IMAP4.error as e:
-        logging.warning(e)
+        logging.warning('IMAP4 error: {}'.format(e))
         return
 
     # get message ids as list
     try:
         typ, message_ids = con.search(None, 'ALL')
     except IMAP4.error as e:
-        logging.warning(e)
+        logging.warning('IMAP4 error: {}'.format(e))
+        return
 
     # iterate over all messages in mailbox
     for num in message_ids[0].split():
@@ -83,7 +84,9 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost ):
             # decode raw bytes to utf-8 string
             mesg_text = "".join(message.decode('utf-8'))
         except UnicodeDecodeError as e:
-            logging.error(e)
+            logging.info('unicode decoding error: {}'.format(e))
+            # try fallback decode latin-1
+            mesg_text = "".join(message.decode('latin-1'))
 
 
         # pipe assembled message through rspam cli
@@ -148,7 +151,7 @@ def main():
         passwd = config['imap']['password']
         command = config['spam']['rspamc']
     except KeyError as e:
-        logging.error(e)
+        logging.error('reading config error: {}'.format(e))
         return
 
     rhost = config['spam'].get('host', '127.0.0.1')
