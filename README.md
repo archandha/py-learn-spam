@@ -1,6 +1,6 @@
 # py-learn-spam
 
-Simple script to gather ham/spam mails from IMAP folder, pipe them through
+Simple script to gather ham/spam mails from IMAP folders, pipe them through
 rspamc and move them to a 'done' imap folder if successful.
 
 ## Configuration

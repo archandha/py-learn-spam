@@ -15,19 +15,22 @@ import logging
 import re
 import subprocess
 import time
-from imaplib import IMAP4
+from imaplib import IMAP4_SSL, IMAP4
 
 CONFIGFILE = '/etc/py-learn-spam.ini'
 
 rspamd_success_string = (
     "^success = true;$|^error.*has been already learned as.*$|^error = \"<.*> "
     "is skipped for bayes classifier: already in class (h|sp)am.*\";$"
+    "|^error = \"all learn conditions denied learning (h|sp)am in default classifier*\";$"
 )
 
 rspamd_success_pattern = re.compile(rspamd_success_string)
 
 
-def query_folder(host, wait, user, passwd, learn, done, task, command, rhost):
+def query_folder(
+        host, use_ssl, wait, user, passwd, learn, done, task, command, rhost
+    ):
     """
     queries all mails in folder named learn, passes this to rspamd
     and moves mail info done folder
@@ -41,15 +44,20 @@ def query_folder(host, wait, user, passwd, learn, done, task, command, rhost):
     command: executable to run for learning spam
     """
 
-    con = IMAP4(host)
-    con.starttls()
+    if use_ssl in ['NO', 'TLS']:
+        con = IMAP4(host)
+        if use_ssl == 'TLS':
+            con.starttls()
+    else:
+        con = IMAP4_SSL(host)
 
+    con.login(user, passwd)
+
+    # my IMAP server does not accept 'enable' if not logged in
     try:
         con.enable("UTF8=ACCEPT")
     except IMAP4.error as e:
         logging.warning('IMAP4 error: {}'.format(e))
-
-    con.login(user, passwd)
 
     # get number of messages to be learned
     try:
@@ -153,6 +161,11 @@ def main():
         logging.error('reading config error: {}'.format(e))
         return
 
+    use_ssl = config['imap'].get('use_ssl', 'NO').upper()
+    if use_ssl not in ['SSL', 'TLS', 'NO']:
+        logging.error(f"reading config error: use_ssl not in 'SSL', 'TLS', 'NO'")
+        return
+
     rhost = config['spam'].get('host', '127.0.0.1')
     rport = config['spam'].get('port', '127.0.0.1')
     rhostport = "%s:%s" % (rhost, rport)
@@ -161,11 +174,11 @@ def main():
 
     logging.info("starting with spam run")
     query_folder(
-        host, wait, user, passwd, spamfolder,
+        host, use_ssl, wait, user, passwd, spamfolder,
         spamdonefolder, "spam", command, rhostport)
     logging.info("starting with ham run")
     query_folder(
-        host, wait, user, passwd, hamfolder,
+        host, use_ssl, wait, user, passwd, hamfolder,
         hamdonefolder, "ham", command, rhostport)
 
 
