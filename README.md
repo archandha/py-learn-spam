@@ -17,7 +17,7 @@ Logging is done using python3 basic logging system.
 ## Systemd
 
 There are sample files for a systemd-unit as well as a systemd-timer. If you
-don't wand to use systemd-timer, feel free to use your favorite cron
+don't want to use systemd-timer, feel free to use your favorite cron
 mechanismn.
 
 ## Python
